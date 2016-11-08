@@ -21,7 +21,7 @@ bouton1:
 	cmp r0, #1 					@ OUI : Est-ce le bouton #1 ? r0 == 1 ?
 	BNE bouton2 				@ NON ==> bouton2 a été pesé --> donner le change
 	bl proceedcommande 			@ OUI : traiter la commande
-	b findeboucle
+	b findeboucle				@Saute à findeboucle
 
 bouton2:
 	bl change 					@ Appel la routine change pour donner le change
@@ -50,11 +50,11 @@ initialise:
 	LDMFD sp!,{pc}				@Charge lenvironement précedent
 
 @ ===========keypressed===================================
-@ routine qui traite une touche du clavier
+@ Routine qui traite une touche du clavier.
 @ Ici, on détermine quelle touche a été pesée.
 @ Si cest un chiffre de 1 à 9, on inscrit le chiffre dans r9 et on met r8 à 0.
-@ Si cest de la monnaie, on incrit le montant dans r8
-@ Si cest une valeur ilégale, on inscrit le montant dans r8
+@ Si cest de la monnaie, on incrit le montant dans r8 et on met r9 à 0.
+@ Si cest une valeur ilégale, on remet les registre à 0 et on affiche un message
 
 keypressed:
 	STMFD sp!,{lr}  			@Sauvegarde de lenvironement précedent
@@ -62,20 +62,36 @@ keypressed:
 	mov r8,#1					@Donne la valeur 1 à r8
 findtouch:
 	cmp r0,r8 					@Compage r0 et r8
-	add r8,r8,r8				@Additionne r8 et r9 dans r8 
+	add r8,r8,r8				@Additionne r8 et r8 dans r8 (r8 = r8*2)
 	add r9,r9,#1 				@Additionne 1 à r9 dans r9
-	bne findtouch 				@Si r0 =! r8 au moment de cmp Saute à  findtouch
-	subs r8,r9,#10				@Vérifie si r9 - 10 > 0 et met le résulat dans r8
-	bmi selectprod				@ si r9 - 10 < 0 Saute à selectprod car une touche produit a été pesée.
-	add r8,r8,#1				@Additionne 1 à r8 dans r8 pour avoir une valeur positive dans r8 
-	mov r9,#0					@Donne la valeur 0 à r9 car la valeur dun ajout de monaie est stocker dans r8
-	LDMFD sp!,{pc}				@Charge lenvironement précedent
-selectprod:
-	mov r8,#0					@Donne la valeur 0 à r8 car la valeur dun achat de produit est stocker dans r9
+	bne findtouch 				@Si r0 =! r8 au moment de cmp Saute à findtouch
+	mov r0,r9					@
+	mov r1,#4
+	bl UDiv
+	cmp r0,#0
+	beq keymonaie
+	cmp r1,#3
+	beq badKey
+	sub r9,r9,r1
+	mov r8,#0
+	b endkeypressed
+keymonaie:
+	mov r8,r1
+	mov r9,#0
+	b endkeypressed
+badKey:
+	ldr r2,=Errtouch
+	mov r0,#5						@Déternime les ordonées pour l affichage
+	mov r1,#11						@Détermine les abscises pour l affichage
+	swi 0x204						@
+	mov r9,#0
+	mov r8,#0
+endkeypressed:
 	LDMFD sp!,{pc}				@Charge lenvironement précedent
 
+
 @============proceedcommande==================================
-@ Routine qui fait vérifie q une action a été choisie et appel les routine makecomande et addmoney si une action a faire
+@ Routine qui vérifie q une action a été choisie et appel les routines makecomande et addmoney si une action est à faire.
 @
 
 proceedcommande: 				
@@ -124,7 +140,7 @@ ErrArgentcommande:
 	mov r0,#5 						@Déternime les ordonées pour l affichage
 	mov r1,#11 						@Détermine les abscises pour l affichage
 	swi 0x204						@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-	b endcommande
+	b endcommande					@Saut vert endcommande
 Errdispcommande:
 	ldr r2,=Errdisp 				@Récupère ladresse de Errdisp dans r2 pour l affichage
 	mov r0,#5						@Déternime les ordonées pour l affichage
@@ -195,23 +211,23 @@ endchange:
 printdata:
 STMFD sp!,{r0-r5,lr}  				@Sauvegarde de lenvironement précedent
 swi 0x206 							@Efface l ecran
-mov r1,#0
-ldr r2,=p0
+mov r1,#0							@Détermine les abscices pour l affichage
+ldr r2,=p0							@Récupère l adresse de p0 dans r2 pour l afficher
 swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-mov r1,#1
+mov r1,#1							@Détermin les abscides pour l'affichage
 ldr r4,=disp 						@Recupère l adresse de disp dans r4
 ldr r3,=produit 					@recupère l adresse de produit dans r3
 
 printdataloop:
 mov r0,#0							@Déternime les ordonées pour l affichage
-ldr r2,[r3]
+ldr r2,[r3]							@Récupère dans r2 la valeur à l adresse stocker dans r3
 swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-mov r0,#20							@Déternime les ordonées pour l affichage
-ldr r2,[r4]
+mov r0,#30							@Déternime les ordonées pour l affichage
+ldr r2,[r4]							@Recupère la valeur à l adresse 
 swi 0x205							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est une string)
 
-add r4,r4,#4						@Avance de 4octect dans l'adresse de disp (va au int suivant du tableau des disponibilitées)
-add r3,r3,#4						@Avance de 4octect dans l'adresse de produit (va au int suivant du tableau de produits)
+add r4,r4,#4						@Avance de 4octects dans l'adresse de disp (va au int suivant du tableau des disponibilitées)
+add r3,r3,#4						@Avance de 4octects dans l'adresse de produit (va au int suivant du tableau de produits)
 add r1,r1,#1						@Ajoute 1 à r1
 cmp r1,#10							@Compage r1 et la valeur 10
 bne printdataloop					@ Si r1 != 10 il reste des produit à afficher (Saute à printdataloop) 
@@ -222,8 +238,17 @@ mov r0,#0							@Déternime les ordonées pour l affichage
 mov r1,#12							@Détermine les abscises pour l affichage
 ldr r2,=strsolde 					@Recupère l adresse de strsolde dans r2 (pour l affiche)
 swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
+bl Affichesolde
+LDMFD sp!,{r0-r5,pc}
+
+
+@===========Affiche Solde=============================
+@ Petite Routine qui sert au rafraichissement du solde
+
+Affichesolde:
+STMFD sp!,{r0-r5,lr}  				@Sauvegarde de lenvironement précedent
 ldr r0,=solde 						@Recupère l adresse de solde dans r0
-ldr r0,[r0] 						@Donne la valeur à ladresse de r0 dans r0
+ldr r0,[r0] 						@Récupère la valeur dans r0 à ladresse stocker dans r0
 mov r1,#100							@Donne la valeur 100 à r1 pour la routine Udiv (Correspond au diviseur)
 bl UDiv 							@Appel la routine Udiv 
 mov r2,r1 							@Donne la valeur de r1 à r2 (résulat de la division et valeur à afficher à l ecran)
@@ -252,7 +277,6 @@ mov r2,#0							@Donne la valeur 0 à r2 (valeur à écrire à l écrant)
 mov r0,#25							@Déternime les ordonées pour l affichage
 swi 0x205							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est une string)
 b endofsolde						@Saute à endofsolde
-
 
 ; ============= UDiv =======================================
 ; Routine qui effectue une division entière (non-signée).
@@ -288,16 +312,16 @@ EndDiv:
 .data
 
 @ Déclaration des produits
-p0: .asciz "Code Description Prix Disp."
-p1: .asciz "1 Chips 1.25"
-p2: .asciz "2 Chocolat 1.50"
-p3: .asciz "3 Fromage 2.95"
-p4: .asciz "4 Gateau 1.60"
-p5: .asciz "5 Yogourt 1.25"
-p6: .asciz "6 Lait 1.40"
-p7: .asciz "7 Muffin 1.80"
-p8: .asciz "8 Arachides 2.00"
-p9: .asciz "9 Bonbons 1.25"
+p0: .asciz "Code   Description   Prix   Disp."
+p1: .asciz " 1     Chips         1.25"
+p2: .asciz " 2     Chocolat      1.50"
+p3: .asciz " 3     Fromage       2.95"
+p4: .asciz " 4     Gateau        1.60"
+p5: .asciz " 5     Yogourt       1.25"
+p6: .asciz " 6     Lait          1.40"
+p7: .asciz " 7     Muffin        1.80"
+p8: .asciz " 8     Arachides     2.00"
+p9: .asciz " 9     Bonbons       1.25"
 
 @ Déclaration dun tableau de chaines pour le 9 produits
 produit:
