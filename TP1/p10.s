@@ -183,20 +183,21 @@ endaddmoney:
 @
 
 change:
-STMFD sp!,{r5-r7,lr} 				@Sauvegarde de lenvironement précedent
-ldr r6,=solde         				@Recupère ladresse de solde dans r6
-ldr r6,[r6] 						@Recupère dans r6 la valeur à ladresse contenu dans r6
-cmp r6,#0 							@Compare r6 avec la valeur 0
-bne execchange 						@Si r6 != 0 Saut à execchange
-ldr r2,=ErrArgent 					@Si non Recupère ladresse de ErrArgent dans r2 ( Le solde est déjà à 0 pas de monnaie à rendre)
-mov r0,#5							@Déternime les ordonées pour l affichage
-mov r1,#11							@Détermine les abscises pour l affichage
-swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
+	STMFD sp!,{r5-r7,lr} 				@Sauvegarde de lenvironement précedent
+	ldr r6,=solde         				@Recupère ladresse de solde dans r6
+	ldr r6,[r6] 						@Recupère dans r6 la valeur à ladresse contenu dans r6
+	cmp r6,#0 							@Compare r6 avec la valeur 0
+	bne execchange 						@Si r6 != 0 Saut à execchange
+	ldr r2,=ErrArgent 					@Si non Recupère ladresse de ErrArgent dans r2 ( Le solde est déjà à 0 pas de monnaie à rendre)
+	mov r0,#5							@Déternime les ordonées pour l affichage
+	mov r1,#11							@Détermine les abscises pour l affichage
+	swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
 	b endchange						@Saute à endchange
 execchange:
+	ldr r6,=solde
 	mov r5, #0						@Donne la valeur 0 à r5
 	str r5,[r6] 					@Ecrit en memoire la valeur de r5 à l adresse contenu dans r6 (nouveau solde à 0) 
-	bl printdata 					@Appel la routine printdata
+	bl Affichesolde 				@Appel la routine printdata
 endchange:
 	LDMFD sp!,{r5-r7,pc} 			@Charge lenvironement précedent
 
@@ -209,74 +210,71 @@ endchange:
 @
 
 printdata:
-STMFD sp!,{r0-r5,lr}  				@Sauvegarde de lenvironement précedent
-swi 0x206 							@Efface l ecran
-mov r1,#0							@Détermine les abscices pour l affichage
-ldr r2,=p0							@Récupère l adresse de p0 dans r2 pour l afficher
-swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-mov r1,#1							@Détermin les abscides pour l'affichage
-ldr r4,=disp 						@Recupère l adresse de disp dans r4
-ldr r3,=produit 					@recupère l adresse de produit dans r3
+	STMFD sp!,{r0-r5,lr}  				@Sauvegarde de lenvironement précedent
+	swi 0x206 							@Efface l ecran
+	mov r1,#0							@Détermine les abscices pour l affichage
+	ldr r2,=p0							@Récupère l adresse de p0 dans r2 pour l afficher
+	swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
+	mov r1,#1							@Détermin les abscides pour l'affichage
+	ldr r4,=disp 						@Recupère l adresse de disp dans r4
+	ldr r3,=produit 					@recupère l adresse de produit dans r3
 
 printdataloop:
-mov r0,#0							@Déternime les ordonées pour l affichage
-ldr r2,[r3]							@Récupère dans r2 la valeur à l adresse stocker dans r3
-swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-mov r0,#30							@Déternime les ordonées pour l affichage
-ldr r2,[r4]							@Recupère la valeur à l adresse 
-swi 0x205							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est une string)
-
-add r4,r4,#4						@Avance de 4octects dans l'adresse de disp (va au int suivant du tableau des disponibilitées)
-add r3,r3,#4						@Avance de 4octects dans l'adresse de produit (va au int suivant du tableau de produits)
-add r1,r1,#1						@Ajoute 1 à r1
-cmp r1,#10							@Compage r1 et la valeur 10
-bne printdataloop					@ Si r1 != 10 il reste des produit à afficher (Saute à printdataloop) 
-									
-									@Affichage du solde
-
-mov r0,#0							@Déternime les ordonées pour l affichage
-mov r1,#12							@Détermine les abscises pour l affichage
-ldr r2,=strsolde 					@Recupère l adresse de strsolde dans r2 (pour l affiche)
-swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-bl Affichesolde
-LDMFD sp!,{r0-r5,pc}
+	mov r0,#0							@Déternime les ordonées pour l affichage
+	ldr r2,[r3]							@Récupère dans r2 la valeur à l adresse stocker dans r3
+	swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
+	mov r0,#30							@Déternime les ordonées pour l affichage
+	ldr r2,[r4]							@Recupère la valeur à l adresse 
+	swi 0x205							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est une string)
+	add r4,r4,#4						@Avance de 4octects dans l'adresse de disp (va au int suivant du tableau des disponibilitées)
+	add r3,r3,#4						@Avance de 4octects dans l'adresse de produit (va au int suivant du tableau de produits)
+	add r1,r1,#1						@Ajoute 1 à r1
+	cmp r1,#10							@Compage r1 et la valeur 10
+	bne printdataloop					@ Si r1 != 10 il reste des produit à afficher (Saute à printdataloop) 
+										@Affichage du solde
+	mov r0,#0							@Déternime les ordonées pour l affichage
+	mov r1,#12							@Détermine les abscises pour l affichage
+	ldr r2,=strsolde 					@Recupère l adresse de strsolde dans r2 (pour l affiche)
+	swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
+	bl Affichesolde						@Appel la routine Affichesolde
+	LDMFD sp!,{r0-r5,pc}
 
 
 @===========Affiche Solde=============================
 @ Petite Routine qui sert au rafraichissement du solde
+@
 
 Affichesolde:
-STMFD sp!,{r0-r5,lr}  				@Sauvegarde de lenvironement précedent
-ldr r0,=solde 						@Recupère l adresse de solde dans r0
-ldr r0,[r0] 						@Récupère la valeur dans r0 à ladresse stocker dans r0
-mov r1,#100							@Donne la valeur 100 à r1 pour la routine Udiv (Correspond au diviseur)
-bl UDiv 							@Appel la routine Udiv 
-mov r2,r1 							@Donne la valeur de r1 à r2 (résulat de la division et valeur à afficher à l ecran)
-mov r3,r0 							@Donne la valeur de r0 à r3 (reste de la division)
-mov r0,#21							@Déternime les ordonées pour l affichage
-mov r1,#12							@Détermine les abscises pour l affichage
-swi 0x205							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est une string)
-mov r0,#24							@Déternime les ordonées pour l affichage
-ldr r2,=separate					@Récupère l adresse de separate dans r2
-swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-mov r5,#10							@Donne la valeur 10 à r5
-SUBS r4,r3,r5 						@Vérifie si r3 - r5 > 0 et met la valeur dans r4
-bmi addzero							@si r3 - r5 < 0 saute à addzero
-
+	STMFD sp!,{r0-r5,lr}  				@Sauvegarde de lenvironement précedent
+	ldr r0,=solde 						@Recupère l adresse de solde dans r0
+	ldr r0,[r0] 						@Récupère la valeur dans r0 à ladresse stocker dans r0
+	mov r1,#100							@Donne la valeur 100 à r1 pour la routine Udiv (Correspond au diviseur)
+	bl UDiv 							@Appel la routine Udiv 
+	mov r2,r1 							@Donne la valeur de r1 à r2 (résulat de la division et valeur à afficher à l ecran)
+	mov r3,r0 							@Donne la valeur de r0 à r3 (reste de la division)
+	mov r0,#23							@Déternime les ordonées pour l affichage
+	mov r1,#12							@Détermine les abscises pour l affichage
+	swi 0x205							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est une string)
+	mov r0,#24							@Déternime les ordonées pour l affichage
+	ldr r2,=separate					@Récupère l adresse de separate dans r2
+	swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
+	mov r5,#10							@Donne la valeur 10 à r5
+	SUBS r4,r3,r5 						@Vérifie si r3 - r5 > 0 et met la valeur dans r4
+	bcs endofsolde						@si r3 - r5 > 0 saute à endofsolde
+	mov r2,#0							@Donne la valeur 0 à r2 (valeur à écrire à l écrant) 
+	mov r0,#25							@Déternime les ordonées pour l affichage
+	swi 0x205							@Affiche à lécran en fonction de r0, r1 et r2 (si r2 est une string)
+	mov r0,#26							@Déternime les ordonées pour l affichage
+	b endofsolde2						@Saute à endofsolde2
 endofsolde:
-mov r2,r3							@Donne la valeur de r3-->(cent) à r2 (valeur à écrire à l écrant)
-mov r0,#26							@Déternime les ordonées pour l affichage
-swi 0x205							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est une string)
-ldr r2,=currency					@Récupère l adresse de currency dans r2 (valeur à écrire à lécrant)
-mov r0,#28							@Déternime les ordonées pour l affichage
-swi 0x204							@On affiche à lecrant en fonction de r0, r1 et r2
-LDMFD sp!,{r0-r5,pc} 				@Charge lenvironement précedent
-
-addzero:
-mov r2,#0							@Donne la valeur 0 à r2 (valeur à écrire à l écrant) 
-mov r0,#25							@Déternime les ordonées pour l affichage
-swi 0x205							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est une string)
-b endofsolde						@Saute à endofsolde
+	mov r0, #25
+endofsolde2:
+	mov r2,r3							@Donne la valeur de r3-->(cent) à r2 (valeur à écrire à l écran
+	swi 0x205							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est une string)
+	ldr r2,=currency					@Récupère l adresse de currency dans r2 (valeur à écrire à lécran)
+	mov r0,#28							@Déternime les ordonées pour l affichage
+	swi 0x204							@On affiche à lecrant en fonction de r0, r1 et r2
+	LDMFD sp!,{r0-r5,pc} 				@Charge lenvironement précedent
 
 ; ============= UDiv =======================================
 ; Routine qui effectue une division entière (non-signée).
@@ -350,7 +348,7 @@ strsolde: .asciz "Votre solde est de : "
 separate: .asciz ","
 currency: .asciz "$"
 
-@Messages d erreur
+@Messages d erreurs
 ErrArgent: .asciz   "Pas de tune        "
 Errdisp: .asciz     "Plus de produit    "
 ErrAction: .asciz   "Aucune selection   "
