@@ -130,24 +130,35 @@ makecomande:
 	bmi ErrArgentcommande 			@Si r0 - r1 < 0 Saut à ErrArgentcommande (Il n y a pas suffisament d argent pour la commande)
 	subs r2,r2,#1 					@Vérifie si r2 - 1 > 0 et met la valeut dans r2
 	bmi Errdispcommande				@Si r2 - 1 < 0  Saut à Errdispcommande (L aticle n est pas disponible)
-	str r2,[r5]						@Copie dans r2 la valeur à ladresse contenu dans r5
-	str r3,[r6]						@Copie dans r3 la valeur à ladresse contenue dans r6
+	cmp r2,#0
+	beq supProd
+endcommande:
+	str r2,[r5]						@Copie la valeur de r2  à ladresse contenu dans r5
+	str r3,[r6]						@Copie la valeur de r3 à ladresse contenue dans r6
 	mov r9,#0						@Donne la valeur 0 à r9
 	bl printdata 					@Apelle la routine printdata
-	b endcommande					@Saut à endcommande
+
+	b endcommande2					@Saut à endcommande
 ErrArgentcommande:
 	ldr r2,=ErrArgent 				@Récupère ladresse de ErrArgent dans r2 pour l affichage
 	mov r0,#5 						@Déternime les ordonées pour l affichage
 	mov r1,#11 						@Détermine les abscises pour l affichage
 	swi 0x204						@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-	b endcommande					@Saut vert endcommande
+	b endcommande2					@Saut vert endcommande
 Errdispcommande:
 	ldr r2,=Errdisp 				@Récupère ladresse de Errdisp dans r2 pour l affichage
 	mov r0,#5						@Déternime les ordonées pour l affichage
 	mov r1,#11						@Détermine les abscises pour l affichage
 	swi 0x204						@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-endcommande:
+endcommande2:
 	LDMFD sp!,{r0-r7,pc} 			@Charge lenvironement précedent
+
+supProd:
+	ldr r4,=nProd
+	ldr r7,[r4]
+	sub r7,r7,#1
+	str r7,[r4]
+	b endcommande
 
 addmoney:
 	STMFD sp!,{r5-r7,lr} 			@Sauvegarde de lenvironement précedent
@@ -172,7 +183,7 @@ addmoney:
 execaddmonay:
 	str r5,[r7] 					@Copie dans la memoire r5 à ladresse contenu dans r7 (le nouveau solde)
 	mov r8,#0						@Met la valeur 0 dans r8
-	bl printsolde					@Appel la routine printdata
+	bl printdata					@Appel la routine printdata
 endaddmoney:
 	LDMFD sp!,{r5-r7,pc} 			@Charge lenvironement précedent
 
@@ -192,14 +203,14 @@ change:
 	mov r0,#5							@Déternime les ordonées pour l affichage
 	mov r1,#11							@Détermine les abscises pour l affichage
 	swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-	b endchange						@Saute à endchange
+	b endchange							@Saute à endchange
 execchange:
 	ldr r6,=solde
-	mov r5, #0						@Donne la valeur 0 à r5
-	str r5,[r6] 					@Ecrit en memoire la valeur de r5 à l adresse contenu dans r6 (nouveau solde à 0) 
-	bl printsolde 					@Appel la routine printsolde
+	mov r5, #0							@Donne la valeur 0 à r5
+	str r5,[r6] 						@Ecrit en memoire la valeur de r5 à l adresse contenu dans r6 (nouveau solde à 0) 
+	bl printdata 						@Appel la routine printdata
 endchange:
-	LDMFD sp!,{r5-r7,pc} 			@Charge lenvironement précedent
+	LDMFD sp!,{r5-r7,pc} 				@Charge lenvironement précedent
 
 
 @=============printdata==================================
@@ -236,16 +247,6 @@ printdataloop:
 	mov r1,#12							@Détermine les abscises pour l affichage
 	ldr r2,=strsolde 					@Recupère l adresse de strsolde dans r2 (pour l affiche)
 	swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-	bl printsolde						@Appel la routine printsolde
-	LDMFD sp!,{r0-r5,pc}
-
-
-@===========Affiche Solde=============================
-@ Petite Routine qui sert au rafraichissement du solde
-@
-
-printsolde:
-	STMFD sp!,{r0-r5,lr}  				@Sauvegarde de lenvironement précedent
 	ldr r0,=solde 						@Recupère l adresse de solde dans r0
 	ldr r0,[r0] 						@Récupère la valeur dans r0 à ladresse stocker dans r0
 	mov r1,#100							@Donne la valeur 100 à r1 pour la routine Udiv (Correspond au diviseur)
@@ -334,7 +335,7 @@ produit:
 .word p9
 
 @ Déclaration du tableau contenant les quantités disponibles
-disp: .word 10,20,10,8,12,6,8,20,15
+disp: .word 1,1,1,1,1,1,1,1,1
 
 @ Déclaration du tableau des prix des produits
 prix: .word 125, 150, 295, 160, 125, 140, 180, 200, 125
