@@ -153,11 +153,11 @@ Errdispcommande:
 endcommande2:
 	LDMFD sp!,{r0-r7,pc} 			@Charge lenvironement précedent
 
-supProd:
-	ldr r4,=nProd
-	ldr r7,[r4]
-	sub r7,r7,#1
-	str r7,[r4]
+supProd:							@Décrémente la valeur nProd si un produit devient indisponible
+	ldr r4,=nProd 					@Recupère l adresse de nProd dans r4
+	ldr r7,[r4] 					@Recupère dans r7 la valeur à l adresse stocker dans r4
+	sub r7,r7,#1 					@Soutrait 1 à la valeur contenu dans r7
+	str r7,[r4] 					@Ecrit la valeur de r7 à l adresse contenu dans r4
 	b endcommande
 
 addmoney:
@@ -205,7 +205,7 @@ change:
 	swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
 	b endchange							@Saute à endchange
 execchange:
-	ldr r6,=solde
+	ldr r6,=solde 						@Recupère ladresse de solde dans r6
 	mov r5, #0							@Donne la valeur 0 à r5
 	str r5,[r6] 						@Ecrit en memoire la valeur de r5 à l adresse contenu dans r6 (nouveau solde à 0) 
 	bl printdata 						@Appel la routine printdata
@@ -222,6 +222,8 @@ endchange:
 
 printdata:
 	STMFD sp!,{r0-r5,lr}  				@Sauvegarde de lenvironement précedent
+	mov r0,#0
+	mov r1,#0
 	swi 0x206 							@Efface l ecran
 	mov r1,#0							@Détermine les abscices pour l affichage
 	ldr r2,=p0							@Récupère l adresse de p0 dans r2 pour l afficher
@@ -256,10 +258,7 @@ printdataloop:
 	mov r0,#23							@Déternime les ordonées pour l affichage
 	mov r1,#12							@Détermine les abscises pour l affichage
 	swi 0x205							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est une string)
-	mov r0,#24							@Déternime les ordonées pour l affichage
-	ldr r2,=separate					@Récupère l adresse de separate dans r2
-	swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-	mov r5,#10							@Donne la valeur 10 à r5
+	mov r5,#10
 	SUBS r4,r3,r5 						@Vérifie si r3 - r5 > 0 et met la valeur dans r4
 	bcs endofsolde						@si r3 - r5 > 0 saute à endofsolde
 	mov r2,#0							@Donne la valeur 0 à r2 (valeur à écrire à l écrant) 
@@ -268,13 +267,10 @@ printdataloop:
 	mov r0,#26							@Déternime les ordonées pour l affichage
 	b endofsolde2						@Saute à endofsolde2
 endofsolde:
-	mov r0, #25
+	mov r0, #25 						@Détermine l'axe des ordonées pour l affichage
 endofsolde2:
 	mov r2,r3							@Donne la valeur de r3-->(cent) à r2 (valeur à écrire à l écran
 	swi 0x205							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est une string)
-	ldr r2,=currency					@Récupère l adresse de currency dans r2 (valeur à écrire à lécran)
-	mov r0,#28							@Déternime les ordonées pour l affichage
-	swi 0x204							@On affiche à lecrant en fonction de r0, r1 et r2
 	LDMFD sp!,{r0-r5,pc} 				@Charge lenvironement précedent
 
 ; ============= UDiv =======================================
@@ -291,7 +287,7 @@ UDiv:
 	STMFD sp!, {r4, lr}
 	MOV r2, #0 						@ par défaut, pas derreur
 	MOVS r1, r1 					@ tester si le diviseur = 0
-	BNE DivOK
+	BNE DivOK						
 	MOV r2, #1 						@ mettre le code derreur à 1
 	BAL EndDiv
 	DivOK: MOV r4, #0 				@ init le quotient à 0
@@ -335,7 +331,7 @@ produit:
 .word p9
 
 @ Déclaration du tableau contenant les quantités disponibles
-disp: .word 1,1,1,1,1,1,1,1,1
+disp: .word 2,3,6,4,4,2,1,1,1
 
 @ Déclaration du tableau des prix des produits
 prix: .word 125, 150, 295, 160, 125, 140, 180, 200, 125
@@ -345,9 +341,7 @@ soldemax: .word 995
 nProd: .word 9
 
 @Solde
-strsolde: .asciz "Votre solde est de : "
-separate: .asciz ","
-currency: .asciz "$"
+strsolde: .asciz "Votre solde est de :    .     $"
 
 @Messages d erreurs
 ErrArgent: .asciz   "Pas de tune        "
