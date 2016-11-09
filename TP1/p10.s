@@ -172,7 +172,7 @@ addmoney:
 execaddmonay:
 	str r5,[r7] 					@Copie dans la memoire r5 à ladresse contenu dans r7 (le nouveau solde)
 	mov r8,#0						@Met la valeur 0 dans r8
-	bl printdata 					@Appel la routine printdata
+	bl printsolde					@Appel la routine printdata
 endaddmoney:
 	LDMFD sp!,{r5-r7,pc} 			@Charge lenvironement précedent
 
@@ -197,7 +197,7 @@ execchange:
 	ldr r6,=solde
 	mov r5, #0						@Donne la valeur 0 à r5
 	str r5,[r6] 					@Ecrit en memoire la valeur de r5 à l adresse contenu dans r6 (nouveau solde à 0) 
-	bl Affichesolde 				@Appel la routine printdata
+	bl printsolde 					@Appel la routine printsolde
 endchange:
 	LDMFD sp!,{r5-r7,pc} 			@Charge lenvironement précedent
 
@@ -236,7 +236,7 @@ printdataloop:
 	mov r1,#12							@Détermine les abscises pour l affichage
 	ldr r2,=strsolde 					@Recupère l adresse de strsolde dans r2 (pour l affiche)
 	swi 0x204							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est un interger)
-	bl Affichesolde						@Appel la routine Affichesolde
+	bl printsolde						@Appel la routine printsolde
 	LDMFD sp!,{r0-r5,pc}
 
 
@@ -244,7 +244,7 @@ printdataloop:
 @ Petite Routine qui sert au rafraichissement du solde
 @
 
-Affichesolde:
+printsolde:
 	STMFD sp!,{r0-r5,lr}  				@Sauvegarde de lenvironement précedent
 	ldr r0,=solde 						@Recupère l adresse de solde dans r0
 	ldr r0,[r0] 						@Récupère la valeur dans r0 à ladresse stocker dans r0
