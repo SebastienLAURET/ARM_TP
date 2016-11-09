@@ -115,7 +115,7 @@ execcom:
 makecomande:
 	STMFD sp!,{r0-r7,lr}	   		@Sauvegarde de lenvironement précedent
 	cmp r9,#0						@Compare r9 et la valeur 0
-	beq endcommande					@Si r9 == 0 Saute à endcommande (pas de commande en vue)
+	beq endcommande2				@Si r9 == 0 Saute à endcommande (pas de commande en vue)
 	ldr r6,=solde 					@Si NON r9 != 9 ==> Récupère l adresse de solde dans r6
 	ldr r0,[r6]						@Copie la valeur à l adresse r6 dans r0
 	mov r7,#4						@Donne la valeur 4 à r7
