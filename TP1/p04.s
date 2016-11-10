@@ -44,9 +44,6 @@ findeboucle:
 
 initialise:
 	STMFD sp!,{lr} 				@Sauvegarde de lenvironement précedent
-	mov r9,#0					@Donne la valeur 0 à r9
-	mov r8,#0					@Donne la valeur 0 à r8
-	bl printdata 				@Appel la routine printdata qui affiche les donnée à lécran
 	LDMFD sp!,{pc}				@Charge lenvironement précedent
 
 @ ===========keypressed===================================
