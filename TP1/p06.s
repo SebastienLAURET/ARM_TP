@@ -43,11 +43,11 @@ findeboucle:
 @ les inventaires de chaque produit.
 
 initialise:
-	STMFD sp!,{lr} 				@Sauvegarde de lenvironement précedent
+	STMFD sp!,{lr} 				@Sauvegarde de l environement précedent
 	mov r9,#0					@Donne la valeur 0 à r9
 	mov r8,#0					@Donne la valeur 0 à r8
 	bl printdata 				@Appel la routine printdata qui affiche les donnée à lécran
-	LDMFD sp!,{pc}				@Charge lenvironement précedent
+	LDMFD sp!,{pc}				@Charge l environement précedent
 
 @ ===========keypressed===================================
 @ Routine qui traite une touche du clavier.
@@ -57,8 +57,8 @@ initialise:
 @ Si cest une valeur ilégale, on remet les registre à 0 et on affiche un message
 
 keypressed:
-	STMFD sp!,{lr}  			@Sauvegarde de lenvironement précedent
-	LDMFD sp!,{pc}				@Charge lenvironement précedent
+	STMFD sp!,{lr}  			@Sauvegarde de l environement précedent
+	LDMFD sp!,{pc}				@Charge l environement précedent
 
 
 @============proceedcommande==================================
@@ -66,8 +66,8 @@ keypressed:
 @
 
 proceedcommande:
-	STMFD sp!,{r0-r2,lr}	     	@Sauvegarde de lenvironement précedent
-	LDMFD sp!,{r0-r2,pc} 			@Charge lenvironement précedent
+	STMFD sp!,{r0-r2,lr}	     	@Sauvegarde de l environement précedent
+	LDMFD sp!,{r0-r2,pc} 			@Charge l environement précedent
 
 @==========change===============================================
 @Routine qui rend la monnaie
@@ -75,8 +75,8 @@ proceedcommande:
 @
 
 change:
-	STMFD sp!,{r5-r7,lr} 				@Sauvegarde de lenvironement précedent
-	LDMFD sp!,{r5-r7,pc} 				@Charge lenvironement précedent
+	STMFD sp!,{r5-r7,lr} 				@Sauvegarde de l environement précedent
+	LDMFD sp!,{r5-r7,pc} 				@Charge l environement précedent
 
 
 @=============printdata==================================
@@ -87,7 +87,7 @@ change:
 @
 
 printdata:
-	STMFD sp!,{r0-r5,lr}  				@Sauvegarde de lenvironement précedent
+	STMFD sp!,{r0-r5,lr}  				@Sauvegarde de l environement précedent
 	mov r0,#0
 	mov r1,#0
 	swi 0x206 							@Efface l ecran
@@ -137,7 +137,7 @@ endofsolde:
 endofsolde2:
 	mov r2,r3							@Donne la valeur de r3-->(cent) à r2 (valeur à écrire à l écran
 	swi 0x205							@Affiche à lecran en fonction de r0, r1 et r2 (si r2 est une string)
-	LDMFD sp!,{r0-r5,pc} 				@Charge lenvironement précedent
+	LDMFD sp!,{r0-r5,pc} 				@Charge l environement précedent
 
 ; ============= UDiv =======================================
 ; Routine qui effectue une division entière (non-signée).
